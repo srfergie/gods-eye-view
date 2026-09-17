@@ -151,7 +151,7 @@
 }
 
 #scene-select {
-  flex: 1;
+  flex: 1 1 100%;
   min-width: 0;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -161,6 +161,13 @@
   font-family: var(--font-sans);
   font-size: 12px;
   outline: none;
+  /* Render the native option popup dark instead of the default white. */
+  color-scheme: dark;
+}
+
+#scene-select option {
+  background-color: var(--bg-panel, #101820);
+  color: var(--text-primary);
 }
 
 .scene-btn {

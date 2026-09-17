@@ -164,6 +164,9 @@ export function recipeToScene(recipe) {
         styleParams,
       },
       layers: keyframeLayers,
+      ...(Array.isArray(keyframe.dataPackIds) && keyframe.dataPackIds.length
+        ? { dataPackIds: [...keyframe.dataPackIds] }
+        : {}),
       ...(recipe.id ? { sourcePackId: recipe.id } : {}),
       ...(recipe.version ? { sourcePackVersion: recipe.version } : {}),
     };
@@ -181,6 +184,9 @@ export function recipeToScene(recipe) {
       ),
     ],
     appliedShotPacks: [],
+    ...(Array.isArray(recipe.dataPacks) && recipe.dataPacks.length
+      ? { dataPacks: deepClone(recipe.dataPacks) }
+      : {}),
     shots,
   };
 }

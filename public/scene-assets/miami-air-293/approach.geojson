@@ -1,0 +1,213 @@
+{
+  "type": "FeatureCollection",
+  "attribution": {
+    "text": "NTSB source data (DCA19MA143 performance study)",
+    "license": "US Government work, public domain"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "approach-track",
+      "properties": {
+        "name": "Miami Air 293 final approach and overrun",
+        "flight": "N732MA / GL293",
+        "date": "2019-05-03",
+        "source": "NTSB performance study DCA19MA143 (ADS-B + FDR)"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -81.7572243,
+            30.2310986,
+            426.72
+          ],
+          [
+            -81.7090852,
+            30.2311316,
+            188.976
+          ],
+          [
+            -81.6994566,
+            30.2309736,
+            109.72800000000001
+          ],
+          [
+            -81.6898305,
+            30.2313367,
+            42.672000000000004
+          ],
+          [
+            -81.6848244,
+            30.2315739,
+            6.096
+          ],
+          [
+            -81.6782648,
+            30.2316519,
+            6.096
+          ],
+          [
+            -81.6698659,
+            30.2314786,
+            6.096
+          ],
+          [
+            -81.6644598,
+            30.2315498,
+            6.096
+          ],
+          [
+            -81.6607706,
+            30.2314669,
+            2.4384
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pt-00",
+      "properties": {
+        "time": "21:40:25",
+        "label": "3.5 nm final, ~1400 ft, above glidepath",
+        "altitudeFtMsl": 1400
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -81.7572243,
+          30.2310986
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pt-01",
+      "properties": {
+        "time": "21:41:17",
+        "label": "1 nm, roll 12 deg right",
+        "altitudeFtMsl": 620
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -81.7090852,
+          30.2311316
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pt-02",
+      "properties": {
+        "time": "21:41:28",
+        "label": "0.5 nm, 220 ft right of centreline",
+        "altitudeFtMsl": 360
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -81.6994566,
+          30.2309736
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pt-03",
+      "properties": {
+        "time": "21:41:38",
+        "label": "crosses displaced threshold, 140 ft MSL, 170 kt",
+        "altitudeFtMsl": 140
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -81.6898305,
+          30.2313367
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pt-04",
+      "properties": {
+        "time": "21:41:43",
+        "label": "touchdown, track 87 deg",
+        "altitudeFtMsl": 20.0
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -81.6848244,
+          30.2315739
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pt-05",
+      "properties": {
+        "time": "21:41:50",
+        "label": "crosses centreline left to right",
+        "altitudeFtMsl": 20.0
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -81.6782648,
+          30.2316519
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pt-06",
+      "properties": {
+        "time": "21:42:01",
+        "label": "max 74 ft right of centreline",
+        "altitudeFtMsl": 20.0
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -81.6698659,
+          30.2314786
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pt-07",
+      "properties": {
+        "time": "21:42:10",
+        "label": "crosses end of runway 10",
+        "altitudeFtMsl": 20.0
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -81.6644598,
+          30.2315498
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "pt-08",
+      "properties": {
+        "time": "21:42:19",
+        "label": "seawall impact into St Johns River",
+        "altitudeFtMsl": 8
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -81.6607706,
+          30.2314669
+        ]
+      }
+    }
+  ]
+}
