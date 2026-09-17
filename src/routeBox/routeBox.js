@@ -1,5 +1,12 @@
 import * as Cesium from 'cesium';
 import { loadGoogleMaps } from '../googleMaps/loader.js';
+import {
+  holdContinuousRender,
+  releaseContinuousRender,
+  governorRequestRender,
+} from '../renderGovernor.js';
+
+const FRAME_HOLD = 'route-frame';
 
 const MODES = [
   { value: 'car', label: 'Drive' },
@@ -345,6 +352,16 @@ export function createRouteBox({
       ];
       const sphere = Cesium.BoundingSphere.fromPoints(points);
       const range = Math.max(sphere.radius * 2.4, 1500);
+      // The app suspends its render loop when idle; hold it on for the flight so
+      // the animation actually runs, then release when it finishes.
+      holdContinuousRender(FRAME_HOLD);
+      governorRequestRender('route-frame');
+      let released = false;
+      const release = () => {
+        if (released) return;
+        released = true;
+        releaseContinuousRender(FRAME_HOLD);
+      };
       viewer.camera.flyToBoundingSphere(sphere, {
         duration: 2,
         offset: new Cesium.HeadingPitchRange(
@@ -352,8 +369,12 @@ export function createRouteBox({
           Cesium.Math.toRadians(-45),
           range,
         ),
+        complete: release,
+        cancel: release,
       });
+      setTimeout(release, 4000); // safety net if neither callback fires
     } catch {
+      releaseContinuousRender(FRAME_HOLD);
       /* framing is best-effort; the route still draws */
     }
   }
