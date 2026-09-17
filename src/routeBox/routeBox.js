@@ -56,6 +56,7 @@ export function createRouteBox({
         <button class="gev-route-clear" type="button" title="Clear the route" disabled>CLEAR</button>
       </div>
       <div class="gev-route-status" aria-live="polite"></div>
+      <ol class="gev-route-steps" hidden></ol>
     </div>
   `;
   doc.body.appendChild(root);
@@ -68,6 +69,7 @@ export function createRouteBox({
   const clearEl = root.querySelector('.gev-route-clear');
   const swapEl = root.querySelector('.gev-route-swap');
   const statusEl = root.querySelector('.gev-route-status');
+  const stepsEl = root.querySelector('.gev-route-steps');
   const collapseEl = root.querySelector('.gev-route-collapse');
 
   const status = (message) => (statusEl.textContent = message || '');
@@ -341,7 +343,7 @@ export function createRouteBox({
     void showRouteStats(token, `${shortA} → ${shortB}`, module);
   }
 
-  /** Poll the layer for the finished route's distance/time and show it. */
+  /** Poll the layer for the finished route's distance/time, then list its turns. */
   async function showRouteStats(token, prefix, module) {
     for (let i = 0; i < 16; i++) {
       if (token !== runToken) return;
@@ -351,11 +353,46 @@ export function createRouteBox({
       // Completed routes report e.g. "23 km · 28 min · Drive"; ignore the
       // pre-route prompts ("SET A…", "Click the globe…").
       if (/\d/.test(coverage) && /(km|mi|\bmin\b|\bh\b|hr)/i.test(coverage)) {
-        return status(`${prefix} · ${coverage}`);
+        status(`${prefix} · ${coverage}`);
+        renderSteps(module);
+        return;
       }
       await new Promise((resolve) => setTimeout(resolve, 400));
     }
     if (token === runToken) status(prefix);
+  }
+
+  /** Render the turn-by-turn list; clicking a turn highlights it on the map. */
+  function renderSteps(module) {
+    const items = module.getRowControls?.()?.list?.items || [];
+    if (!items.length) {
+      stepsEl.hidden = true;
+      stepsEl.replaceChildren();
+      return;
+    }
+    stepsEl.replaceChildren(
+      ...items.map((item) => {
+        const li = doc.createElement('li');
+        li.className = 'gev-route-step';
+        if (item.active || item.current) li.classList.add('active');
+        if (item.disabled) li.classList.add('disabled');
+        const lead = doc.createElement('span');
+        lead.className = 'gev-route-step-lead';
+        lead.textContent = item.lead || '';
+        const text = doc.createElement('span');
+        text.className = 'gev-route-step-text';
+        text.textContent = item.text || '';
+        li.append(lead, text);
+        if (!item.disabled && item.params) {
+          li.addEventListener('click', () => {
+            module.setParams(item.params);
+            renderSteps(module); // reflect the new highlight
+          });
+        }
+        return li;
+      }),
+    );
+    stepsEl.hidden = false;
   }
 
   /** Fly the camera to frame both endpoints so the route is in view. */
@@ -411,6 +448,8 @@ export function createRouteBox({
     destField.close();
     flyEl.disabled = true;
     clearEl.disabled = true;
+    stepsEl.hidden = true;
+    stepsEl.replaceChildren();
     status('');
   }
 
