@@ -56,6 +56,7 @@ export function createRouteBox({
         <button class="gev-route-clear" type="button" title="Clear the route" disabled>CLEAR</button>
       </div>
       <div class="gev-route-status" aria-live="polite"></div>
+      <div class="gev-route-alts" hidden></div>
       <ol class="gev-route-steps" hidden></ol>
     </div>
   `;
@@ -69,8 +70,97 @@ export function createRouteBox({
   const clearEl = root.querySelector('.gev-route-clear');
   const swapEl = root.querySelector('.gev-route-swap');
   const statusEl = root.querySelector('.gev-route-status');
+  const altsEl = root.querySelector('.gev-route-alts');
   const stepsEl = root.querySelector('.gev-route-steps');
   const collapseEl = root.querySelector('.gev-route-collapse');
+
+  // Preview polylines for alternate routes (the module owns/flies the primary).
+  const altEntities = [];
+  const clearAltPreviews = () => {
+    for (const entity of altEntities) {
+      try {
+        viewer.entities.remove(entity);
+      } catch {
+        /* already gone */
+      }
+    }
+    altEntities.length = 0;
+    altsEl.hidden = true;
+    altsEl.replaceChildren();
+  };
+
+  function drawAlternate(coordinates, emphasized) {
+    const positions = coordinates.map(([lon, lat]) =>
+      Cesium.Cartesian3.fromDegrees(lon, lat),
+    );
+    const entity = viewer.entities.add({
+      polyline: {
+        positions,
+        width: emphasized ? 6 : 4,
+        material: Cesium.Color.fromCssColorString('#9aa7b4').withAlpha(
+          emphasized ? 0.95 : 0.55,
+        ),
+        clampToGround: true,
+      },
+    });
+    altEntities.push(entity);
+    return entity;
+  }
+
+  const fmtKm = (m) =>
+    m >= 1000
+      ? `${(m / 1000).toFixed(m < 10000 ? 1 : 0)} km`
+      : `${Math.round(m)} m`;
+  const fmtMin = (s) => {
+    const min = Math.round(s / 60);
+    return min >= 60
+      ? `${Math.floor(min / 60)} h ${min % 60} min`
+      : `${min} min`;
+  };
+
+  /** Fetch and preview alternate routes (only when the backend offers any). */
+  async function showAlternates(token, a, b, mode) {
+    clearAltPreviews();
+    let data;
+    try {
+      const coords = `${a.lon.toFixed(6)},${a.lat.toFixed(6)};${b.lon.toFixed(6)},${b.lat.toFixed(6)}`;
+      const response = await fetchImpl(
+        `/api/route?profile=${encodeURIComponent(mode)}&coords=${encodeURIComponent(coords)}&alternatives=3`,
+        { cache: 'no-store' },
+      );
+      data = await response.json().catch(() => null);
+    } catch {
+      return;
+    }
+    if (token !== runToken) return;
+    const routes = Array.isArray(data?.routes) ? data.routes : [];
+    // routes[0] is the primary the module already drew; preview the rest.
+    const alternates = routes.slice(1).filter((r) => r?.geometry?.length > 1);
+    if (!alternates.length) return;
+    const chips = alternates.map((alt, i) => {
+      const entity = drawAlternate(alt.geometry, false);
+      const chip = doc.createElement('button');
+      chip.type = 'button';
+      chip.className = 'gev-route-alt';
+      chip.textContent = `Alt ${i + 1} · ${fmtMin(alt.durationS)} · ${fmtKm(alt.distanceM)}`;
+      chip.addEventListener('mouseenter', () => {
+        entity.polyline.width = 6;
+        entity.polyline.material =
+          Cesium.Color.fromCssColorString('#39d0ff').withAlpha(0.95);
+        governorRequestRender('route-alt-hover');
+      });
+      chip.addEventListener('mouseleave', () => {
+        entity.polyline.width = 4;
+        entity.polyline.material =
+          Cesium.Color.fromCssColorString('#9aa7b4').withAlpha(0.55);
+        governorRequestRender('route-alt-hover');
+      });
+      return chip;
+    });
+    altsEl.replaceChildren(...chips);
+    altsEl.hidden = false;
+    governorRequestRender('route-alts');
+  }
 
   const status = (message) => (statusEl.textContent = message || '');
   const directionsModule = () => dataManager?.layers?.get('directions')?.module;
@@ -341,6 +431,7 @@ export function createRouteBox({
     flyEl.disabled = false;
     clearEl.disabled = false;
     void showRouteStats(token, `${shortA} → ${shortB}`, module);
+    void showAlternates(token, a, b, modeEl.value);
   }
 
   /** Poll the layer for the finished route's distance/time, then list its turns. */
@@ -450,6 +541,7 @@ export function createRouteBox({
     clearEl.disabled = true;
     stepsEl.hidden = true;
     stepsEl.replaceChildren();
+    clearAltPreviews();
     status('');
   }
 
@@ -481,6 +573,7 @@ export function createRouteBox({
     fly,
     clearRoute,
     destroy() {
+      clearAltPreviews();
       goEl.removeEventListener('click', onGo);
       flyEl.removeEventListener('click', onFly);
       clearEl.removeEventListener('click', onClear);

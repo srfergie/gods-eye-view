@@ -158,6 +158,7 @@ async function fetchRoute({
   base,
   coords,
   withSteps,
+  alternatives = 0,
   fetchImpl,
 }) {
   // `steps` is opt-in per request. Asking for maneuvers on every call made the
@@ -165,7 +166,7 @@ async function fetchRoute({
   // voice route annotation, fly_route), on someone else's bandwidth.
   const upstream =
     `${base.replace(/\/$/, '')}/route/v1/${osrmProfile}/${coords}` +
-    `?overview=full&geometries=geojson&alternatives=false&steps=${withSteps ? 'true' : 'false'}`;
+    `?overview=full&geometries=geojson&alternatives=${alternatives > 0 ? 'true' : 'false'}&steps=${withSteps ? 'true' : 'false'}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 12000);
   let osrm;
@@ -211,6 +212,18 @@ async function fetchRoute({
     const { steps, truncated } = normalizeOsrmSteps(route);
     payload.steps = steps;
     if (truncated) payload.stepsTruncated = true;
+  }
+  // Alternates carry only geometry + distance/time (no maneuvers); the caller
+  // draws them as previews and flies the primary route.
+  if (
+    alternatives > 0 &&
+    Array.isArray(osrm.routes) &&
+    osrm.routes.length > 1
+  ) {
+    payload.routes = osrm.routes
+      .slice(0, alternatives + 1)
+      .filter((r) => r?.geometry?.coordinates?.length)
+      .map((r) => projectRouteResult(r, profile));
   }
   return { payload, error: null };
 }
@@ -289,7 +302,11 @@ export function installRouteMiddleware(
       }
       if (totalKm > ROUTE_MAX_TOTAL_KM) return fail('route too long');
       const coords = clean.join(';');
-      const cacheKey = `${profile}|${coords}`;
+      const altRaw = Math.floor(Number(url.searchParams.get('alternatives')));
+      const alternatives = Number.isFinite(altRaw)
+        ? Math.max(0, Math.min(3, altRaw))
+        : 0;
+      const cacheKey = `${profile}|${coords}|a${alternatives}`;
       const base =
         endpoints[profile] ||
         `https://routing.openstreetmap.de/routed-${profile}`;
@@ -322,6 +339,7 @@ export function installRouteMiddleware(
           base,
           coords,
           withSteps: wantSteps,
+          alternatives,
           fetchImpl,
         });
         _routeInflight.set(inflightKey, pending);

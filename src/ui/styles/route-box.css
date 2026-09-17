@@ -158,6 +158,30 @@
   color: rgba(255, 255, 255, 0.72);
 }
 
+#gev-route-box .gev-route-alts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+#gev-route-box .gev-route-alt {
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid rgba(154, 167, 180, 0.5);
+  background: rgba(154, 167, 180, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+#gev-route-box .gev-route-alt:hover {
+  border-color: rgba(57, 208, 255, 0.8);
+  color: #fff;
+}
+
 #gev-route-box .gev-route-steps {
   margin: 4px 0 0;
   padding: 0;
