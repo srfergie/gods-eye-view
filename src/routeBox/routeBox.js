@@ -1,3 +1,4 @@
+import * as Cesium from 'cesium';
 import { loadGoogleMaps } from '../googleMaps/loader.js';
 
 const MODES = [
@@ -324,6 +325,7 @@ export function createRouteBox({
     module.setParams({ mode: modeEl.value });
     module.placeEndpoint('a', { lat: a.lat, lon: a.lon });
     module.placeEndpoint('b', { lat: b.lat, lon: b.lon });
+    frameEndpoints(a, b);
     const shortA = a.label.split(',')[0];
     const shortB = b.label.split(',')[0];
     status(`Routing ${shortA} → ${shortB}…`);
@@ -332,6 +334,28 @@ export function createRouteBox({
     setTimeout(() => {
       if (token === runToken) status(`${shortA} → ${shortB}`);
     }, 1200);
+  }
+
+  /** Fly the camera to frame both endpoints so the route is in view. */
+  function frameEndpoints(a, b) {
+    try {
+      const points = [
+        Cesium.Cartesian3.fromDegrees(a.lon, a.lat),
+        Cesium.Cartesian3.fromDegrees(b.lon, b.lat),
+      ];
+      const sphere = Cesium.BoundingSphere.fromPoints(points);
+      const range = Math.max(sphere.radius * 2.4, 1500);
+      viewer.camera.flyToBoundingSphere(sphere, {
+        duration: 2,
+        offset: new Cesium.HeadingPitchRange(
+          0,
+          Cesium.Math.toRadians(-45),
+          range,
+        ),
+      });
+    } catch {
+      /* framing is best-effort; the route still draws */
+    }
   }
 
   function fly() {
