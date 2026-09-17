@@ -8,6 +8,7 @@ import {
 import { trailHeadStart } from '../../data/modelVisualAnchor.js';
 import { aircraftIcon, TRACKED_ICON_PX } from '../../data/aircraftIcons.js';
 import { routePlausible } from '../../data/routePlausible.js';
+import { haversineKm } from '../../data/analystEngine.js';
 import { CLASS_SCALE_2D } from '../../data/aircraftClass.js';
 import {
   bindTrackingClickGesture,
@@ -767,9 +768,51 @@ export function createTracking({
           .join(' · ');
     if (ident) lines.push(ident);
     if (info.route && _routeIsPlausible(icao24, info.route)) {
-      lines.push(`${info.route.origin.code} → ${info.route.destination.code}`);
+      const eta = _estimateArrival(info);
+      lines.push(
+        `${info.route.origin.code} → ${info.route.destination.code}` +
+          (eta ? ` · ${eta}` : ''),
+      );
     }
     return lines.join('\n');
+  }
+
+  /**
+   * Rough live ETA from the airborne contact's position, ground speed and
+   * destination airport. Great-circle distance / current speed — it cannot
+   * know descent, holding or approach, so it is an estimate, not a schedule.
+   * @returns {string|null} e.g. "ETA 34 min (14:20)" or null when not sensible.
+   */
+  function _estimateArrival(info) {
+    const dest = info.route?.destination;
+    if (
+      info.onGround ||
+      !dest ||
+      !Number.isFinite(dest.lat) ||
+      !Number.isFinite(dest.lon) ||
+      !Number.isFinite(info.latitude) ||
+      !Number.isFinite(info.longitude) ||
+      !(info.velocity > 60) // ~120 kts: airborne and moving, avoids taxi noise
+    )
+      return null;
+    const distKm = haversineKm(
+      info.latitude,
+      info.longitude,
+      dest.lat,
+      dest.lon,
+    );
+    if (distKm < 5) return 'arriving';
+    const minutes = Math.round(distKm / (info.velocity * 3.6 * (1 / 60)));
+    if (!Number.isFinite(minutes) || minutes > 1200) return null;
+    const label =
+      minutes >= 60
+        ? `ETA ${Math.floor(minutes / 60)}h ${minutes % 60}m`
+        : `ETA ${minutes} min`;
+    const at = new Date(Date.now() + minutes * 60000).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    return `${label} (${at})`;
   }
 
   /** Write the explicit tracked presentation model and refresh its host entry. */
