@@ -6,6 +6,12 @@
   top: 96px;
   z-index: 40;
   width: 244px;
+  /* Keep the box's bottom inside the top half of the screen so the panel
+     layout controller reliably places DATA LAYERS / SCENES below it; content
+     scrolls inside rather than growing down over those panels. */
+  max-height: calc(50vh - 112px);
+  display: flex;
+  flex-direction: column;
   padding: 10px 11px 11px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -14,6 +20,18 @@
   font-family: var(--font-sans, sans-serif);
   backdrop-filter: blur(8px);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+
+#gev-route-box .gev-route-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* The step list shares the box's scroll rather than adding its own cap. */
+#gev-route-box .gev-route-steps {
+  max-height: none;
+  overflow: visible;
 }
 
 #gev-route-box .gev-route-head {

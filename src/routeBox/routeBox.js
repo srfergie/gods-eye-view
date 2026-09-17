@@ -62,6 +62,27 @@ export function createRouteBox({
   `;
   doc.body.appendChild(root);
 
+  // The panel layout controller only observes obstacles that existed when it
+  // started; this box is created later. Nudge a relayout whenever the box
+  // changes height (steps/alternates appear or clear) so the DATA LAYERS and
+  // SCENES panels move below it instead of overlapping.
+  let resizeRaf = null;
+  const boxResizeObserver =
+    typeof ResizeObserver === 'function'
+      ? new ResizeObserver(() => {
+          if (resizeRaf) return;
+          resizeRaf = requestAnimationFrame(() => {
+            resizeRaf = null;
+            try {
+              window.dispatchEvent(new Event('resize'));
+            } catch {
+              /* jsdom / no window */
+            }
+          });
+        })
+      : null;
+  boxResizeObserver?.observe(root);
+
   const startEl = root.querySelector('.gev-route-start');
   const destEl = root.querySelector('.gev-route-dest');
   const modeEl = root.querySelector('.gev-route-mode');
@@ -573,6 +594,7 @@ export function createRouteBox({
     fly,
     clearRoute,
     destroy() {
+      boxResizeObserver?.disconnect();
       clearAltPreviews();
       goEl.removeEventListener('click', onGo);
       flyEl.removeEventListener('click', onFly);
