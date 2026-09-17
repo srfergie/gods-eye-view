@@ -224,6 +224,10 @@ const LAYER_ALIASES = new Map([
 ]);
 
 const CITY_ALIASES = new Map([
+  ['firth of forth', 'forth'],
+  ['the forth', 'forth'],
+  ['forth bridges', 'forth'],
+  ['the forth bridges', 'forth'],
   ['new york', 'nyc'],
   ['new york city', 'nyc'],
   ['san francisco', 'sf'],

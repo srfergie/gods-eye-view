@@ -9,6 +9,8 @@ const schemas = [
         locationId: {
           type: 'string',
           enum: [
+            'forth',
+            'edinburgh',
             'austin',
             'sf',
             'nyc',
@@ -60,6 +62,8 @@ const schemas = [
         locationId: {
           type: 'string',
           enum: [
+            'forth',
+            'edinburgh',
             'austin',
             'sf',
             'nyc',
@@ -484,6 +488,8 @@ const schemas = [
         locationId: {
           type: 'string',
           enum: [
+            'forth',
+            'edinburgh',
             'austin',
             'sf',
             'nyc',

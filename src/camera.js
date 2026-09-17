@@ -2,7 +2,7 @@ import * as Cesium from 'cesium';
 
 /**
  * Camera presets for notable locations.
- * Phase 1 default: fly to Austin, TX on load.
+ * Startup default: the Firth of Forth (see STARTUP_VIEW).
  */
 export const CAMERA_PRESETS = {
   austin: {
@@ -46,14 +46,25 @@ export function flyToPreset(viewer, presetName, duration = 3.0) {
   });
 }
 
+/** Startup view: the three Forth bridges, seen from above South Queensferry. */
+const STARTUP_VIEW = {
+  overhead: { lon: -3.4, lat: 56.003, heightM: 25000 },
+  arrival: { lon: -3.47, lat: 55.972, heightM: 2400, heading: 52, pitch: -22 },
+};
+
 /**
- * Set camera to Austin on load with a cinematic fly-in.
+ * Set camera over the Firth of Forth on load with a cinematic fly-in.
  * @returns {Function} Cancels the pending or active startup flight.
  */
-export function flyToAustin(viewer) {
+export function flyToStartupView(viewer) {
+  const { overhead, arrival } = STARTUP_VIEW;
   // Start from a high altitude, then fly down
   viewer.camera.setView({
-    destination: Cesium.Cartesian3.fromDegrees(-97.7431, 30.2672, 25000),
+    destination: Cesium.Cartesian3.fromDegrees(
+      overhead.lon,
+      overhead.lat,
+      overhead.heightM,
+    ),
     orientation: {
       heading: Cesium.Math.toRadians(0),
       pitch: Cesium.Math.toRadians(-90),
@@ -65,10 +76,14 @@ export function flyToAustin(viewer) {
   const timer = setTimeout(() => {
     if (viewer.isDestroyed()) return;
     viewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(-97.7431, 30.2672, 600),
+      destination: Cesium.Cartesian3.fromDegrees(
+        arrival.lon,
+        arrival.lat,
+        arrival.heightM,
+      ),
       orientation: {
-        heading: Cesium.Math.toRadians(15),
-        pitch: Cesium.Math.toRadians(-30),
+        heading: Cesium.Math.toRadians(arrival.heading),
+        pitch: Cesium.Math.toRadians(arrival.pitch),
         roll: 0.0,
       },
       duration: 4.0,
