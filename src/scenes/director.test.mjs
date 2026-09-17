@@ -493,17 +493,24 @@ test('public defaults include Nepal without an extra standalone flood recipe', (
 });
 
 
-test('an existing public default project gains Nepal without replacing authored shots', () => {
+test('an existing public default project gains the auto-installing built-ins without replacing authored shots', () => {
   const project = structuredClone(PROJECT_FIXTURE);
   project.scenes[0].id = 'flights-radar';
   const original = structuredClone(project.scenes[0].shots);
   const { director, restore } = makeDirector({ project });
   try {
+    // Authored shots on the anchor scene are preserved.
     assert.deepEqual(director._project.scenes[0].shots.map(({ id, camera }) => ({ id, camera })),
       original.map(({ id, camera }) => ({ id, camera })));
-    assert.equal(director._project.scenes[1].title, 'Nepal Flood Incident');
-    assert.equal(director._project.scenes[1].shots.length, 25);
-    assert.deepEqual(director._project.installedBuiltInSceneIds, ['bhote-koshi-nepal-scene']);
+    // Both self-installing built-ins are spliced in after the anchor: Miami Air
+    // 293 (anchored to flights-radar) and Nepal (fallback-anchored to it too).
+    const gained = director._project.scenes.slice(1).map((s) => s.title);
+    assert.ok(gained.includes('Nepal Flood Incident'));
+    assert.ok(gained.includes('Miami Air 293 - Runway Overrun'));
+    const nepal = director._project.scenes.find((s) => s.title === 'Nepal Flood Incident');
+    assert.equal(nepal.shots.length, 25);
+    assert.deepEqual(director._project.installedBuiltInSceneIds,
+      ['bhote-koshi-nepal-scene', 'miami-air-293']);
   } finally { restore(); }
 });
 

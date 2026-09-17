@@ -1,0 +1,249 @@
+{
+  "version": 5,
+  "scenes": [
+    {
+      "id": "miami-air-293",
+      "title": "Miami Air 293 - Runway Overrun (KNIP, 3 May 2019)",
+      "dataPacks": [
+        {
+          "id": "approach",
+          "version": 1,
+          "format": "geojson",
+          "source": {
+            "adapter": "assets",
+            "path": "miami-air-293/approach.geojson"
+          },
+          "attribution": {
+            "text": "NTSB performance study DCA19MA143 (ADS-B + FDR)",
+            "license": "US Government work, public domain"
+          },
+          "placement": {
+            "altitudeReference": "ellipsoid"
+          }
+        }
+      ],
+      "shots": [
+        {
+          "id": "establish",
+          "title": "Approach into Jacksonville",
+          "durationSec": 5,
+          "holdSec": 1.5,
+          "camera": {
+            "lat": 30.2313252,
+            "lon": -81.7707043,
+            "alt": 1249.7,
+            "heading": 90,
+            "pitch": -8,
+            "roll": 0
+          },
+          "visual": {
+            "style": "normal"
+          },
+          "dataPackIds": [
+            "approach"
+          ]
+        },
+        {
+          "id": "t214025",
+          "title": "21:40:25  3.5 nm final, ~1400 ft, above glidepath",
+          "durationSec": 4,
+          "holdSec": 1.2,
+          "camera": {
+            "lat": 30.2310986,
+            "lon": -81.7572243,
+            "alt": 399.2,
+            "heading": 90.0,
+            "pitch": -2.9,
+            "roll": 0
+          },
+          "visual": {
+            "style": "normal"
+          },
+          "dataPackIds": [
+            "approach"
+          ]
+        },
+        {
+          "id": "t214117",
+          "title": "21:41:17  1 nm, roll 12 deg right",
+          "durationSec": 8,
+          "holdSec": 0.3,
+          "camera": {
+            "lat": 30.2311316,
+            "lon": -81.7090852,
+            "alt": 161.5,
+            "heading": 91.1,
+            "pitch": -4.9,
+            "roll": 12
+          },
+          "visual": {
+            "style": "normal"
+          },
+          "dataPackIds": [
+            "approach"
+          ]
+        },
+        {
+          "id": "t214128",
+          "title": "21:41:28  0.5 nm, 220 ft right of centreline",
+          "durationSec": 8,
+          "holdSec": 0.3,
+          "camera": {
+            "lat": 30.2309736,
+            "lon": -81.6994566,
+            "alt": 82.2,
+            "heading": 87.5,
+            "pitch": -4.1,
+            "roll": 6
+          },
+          "visual": {
+            "style": "normal"
+          },
+          "dataPackIds": [
+            "approach"
+          ]
+        },
+        {
+          "id": "t214138",
+          "title": "21:41:38  crosses displaced threshold, 140 ft MSL, 170 kt",
+          "durationSec": 8,
+          "holdSec": 0.3,
+          "camera": {
+            "lat": 30.2313367,
+            "lon": -81.6898305,
+            "alt": 15.2,
+            "heading": 86.9,
+            "pitch": -4.3,
+            "roll": -9
+          },
+          "visual": {
+            "style": "normal"
+          },
+          "dataPackIds": [
+            "approach"
+          ]
+        },
+        {
+          "id": "t214143",
+          "title": "21:41:43  touchdown, track 87 deg",
+          "durationSec": 5,
+          "holdSec": 0.3,
+          "camera": {
+            "lat": 30.2315739,
+            "lon": -81.6848244,
+            "alt": -21.4,
+            "heading": 89.2,
+            "pitch": 0.0,
+            "roll": 0
+          },
+          "visual": {
+            "style": "normal"
+          },
+          "dataPackIds": [
+            "approach"
+          ]
+        },
+        {
+          "id": "t214150",
+          "title": "21:41:50  crosses centreline left to right",
+          "durationSec": 7,
+          "holdSec": 0.3,
+          "camera": {
+            "lat": 30.2316519,
+            "lon": -81.6782648,
+            "alt": -21.4,
+            "heading": 91.4,
+            "pitch": 0.0,
+            "roll": 0
+          },
+          "visual": {
+            "style": "normal"
+          },
+          "dataPackIds": [
+            "approach"
+          ]
+        },
+        {
+          "id": "t214201",
+          "title": "21:42:01  max 74 ft right of centreline",
+          "durationSec": 8,
+          "holdSec": 0.3,
+          "camera": {
+            "lat": 30.2314786,
+            "lon": -81.6698659,
+            "alt": -21.4,
+            "heading": 89.1,
+            "pitch": 0.0,
+            "roll": 0
+          },
+          "visual": {
+            "style": "normal"
+          },
+          "dataPackIds": [
+            "approach"
+          ]
+        },
+        {
+          "id": "t214210",
+          "title": "21:42:10  crosses end of runway 10",
+          "durationSec": 8,
+          "holdSec": 0.3,
+          "camera": {
+            "lat": 30.2315498,
+            "lon": -81.6644598,
+            "alt": -21.4,
+            "heading": 91.5,
+            "pitch": -0.6,
+            "roll": 0
+          },
+          "visual": {
+            "style": "normal"
+          },
+          "dataPackIds": [
+            "approach"
+          ]
+        },
+        {
+          "id": "t214219",
+          "title": "21:42:19  seawall impact into St Johns River",
+          "durationSec": 8,
+          "holdSec": 1.2,
+          "camera": {
+            "lat": 30.2314669,
+            "lon": -81.6607706,
+            "alt": -25.1,
+            "heading": 91.5,
+            "pitch": 0,
+            "roll": 0
+          },
+          "visual": {
+            "style": "normal"
+          },
+          "dataPackIds": [
+            "approach"
+          ]
+        },
+        {
+          "id": "rest",
+          "title": "Came to rest in the St Johns River",
+          "durationSec": 5,
+          "holdSec": 3,
+          "camera": {
+            "lat": 30.2254669,
+            "lon": -81.6567706,
+            "alt": 260,
+            "heading": 300,
+            "pitch": -30,
+            "roll": 0
+          },
+          "visual": {
+            "style": "normal"
+          },
+          "dataPackIds": [
+            "approach"
+          ]
+        }
+      ]
+    }
+  ]
+}
