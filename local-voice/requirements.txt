@@ -1,0 +1,7 @@
+# Local speech-to-text for God's Eye View voice control.
+# CUDA build tested on an NVIDIA RTX 4090 (24 GB). The nvidia-* wheels supply
+# the cuBLAS/cuDNN DLLs faster-whisper needs; server.py adds them to the DLL
+# search path at startup so no system CUDA install is required.
+faster-whisper==1.2.1
+nvidia-cublas-cu12==12.9.2.10
+nvidia-cudnn-cu12==9.26.0.51
