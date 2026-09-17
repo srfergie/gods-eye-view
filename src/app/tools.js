@@ -3,6 +3,7 @@ import { initAnnotations } from '../annotations/index.js';
 import { initDrawTool } from '../annotations/drawTool.js';
 import { initGevVoiceCommands } from '../voice/gevRealtime.js';
 import { createStreetView } from '../streetView/streetView.js';
+import { createRouteBox } from '../routeBox/routeBox.js';
 import { installScopeMask, destroyScopeMask } from '../scopeMask.js';
 import {
   installRenderGovernor,
@@ -141,5 +142,8 @@ export function createApplicationTools({
   const streetView = createStreetView({ viewer });
   defer(() => streetView.destroy());
   debug.streetView = streetView;
-  return { sceneDirector, annotations, voiceCommands, streetView };
+  const routeBox = createRouteBox({ viewer, dataManager });
+  defer(() => routeBox.destroy());
+  debug.routeBox = routeBox;
+  return { sceneDirector, annotations, voiceCommands, streetView, routeBox };
 }

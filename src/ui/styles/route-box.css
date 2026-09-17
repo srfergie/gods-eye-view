@@ -1,0 +1,119 @@
+/* Typed start/destination directions box. */
+
+#gev-route-box {
+  position: fixed;
+  left: 16px;
+  top: 96px;
+  z-index: 40;
+  width: 244px;
+  padding: 10px 11px 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(16, 24, 32, 0.86);
+  color: var(--text-primary, #e8eaed);
+  font-family: var(--font-sans, sans-serif);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+}
+
+#gev-route-box .gev-route-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+#gev-route-box .gev-route-title {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #8fd0ff;
+}
+
+#gev-route-box .gev-route-collapse {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary, #e8eaed);
+  cursor: pointer;
+  line-height: 1;
+}
+
+#gev-route-box.collapsed .gev-route-body {
+  display: none;
+}
+
+#gev-route-box .gev-route-body {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+#gev-route-box input,
+#gev-route-box select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 8px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary, #e8eaed);
+  font-family: var(--font-sans, sans-serif);
+  font-size: 12px;
+  outline: none;
+  color-scheme: dark;
+}
+
+#gev-route-box input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+#gev-route-box .gev-route-controls {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+#gev-route-box .gev-route-mode {
+  flex: 1 1 auto;
+  width: auto;
+}
+
+#gev-route-box .gev-route-swap,
+#gev-route-box .gev-route-go,
+#gev-route-box .gev-route-fly {
+  padding: 7px 9px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary, #e8eaed);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#gev-route-box .gev-route-go {
+  background: rgba(57, 208, 255, 0.16);
+  border-color: rgba(57, 208, 255, 0.5);
+}
+
+#gev-route-box .gev-route-go:hover,
+#gev-route-box .gev-route-fly:hover:not(:disabled) {
+  border-color: rgba(120, 200, 255, 0.7);
+}
+
+#gev-route-box .gev-route-fly:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+#gev-route-box .gev-route-status {
+  min-height: 14px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.72);
+}
