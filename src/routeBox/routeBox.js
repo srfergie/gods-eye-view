@@ -45,6 +45,7 @@ export function createRouteBox({
         <button class="gev-route-swap" type="button" title="Swap start and destination">⇅</button>
         <button class="gev-route-go" type="button">ROUTE</button>
         <button class="gev-route-fly" type="button" disabled>FLY</button>
+        <button class="gev-route-clear" type="button" title="Clear the route" disabled>CLEAR</button>
       </div>
       <div class="gev-route-status" aria-live="polite"></div>
     </div>
@@ -56,6 +57,7 @@ export function createRouteBox({
   const modeEl = root.querySelector('.gev-route-mode');
   const goEl = root.querySelector('.gev-route-go');
   const flyEl = root.querySelector('.gev-route-fly');
+  const clearEl = root.querySelector('.gev-route-clear');
   const swapEl = root.querySelector('.gev-route-swap');
   const statusEl = root.querySelector('.gev-route-status');
   const collapseEl = root.querySelector('.gev-route-collapse');
@@ -64,31 +66,114 @@ export function createRouteBox({
   const directionsModule = () => dataManager?.layers?.get('directions')?.module;
 
   // --- Google Places autocomplete (optional; degrades to keyless geocode) ---
-  let placesReady = null; // Promise<{autocomplete, geocoder}> | null | false(disabled)
+  // Prefers the new Places API (AutocompleteSuggestion), falls back to the
+  // legacy AutocompleteService. `predict` returns [{ label, resolve() }].
+  let placesReady = null; // Promise<adapter|false> | false
   function ensurePlaces() {
     if (placesReady !== null) return placesReady;
     const apiKey = getApiKey();
     if (!apiKey) return (placesReady = false);
     placesReady = loadGoogleMaps(apiKey, { libraries: ['places'] })
-      .then((maps) => {
-        if (!maps.places?.AutocompleteService) throw new Error('no places');
-        return {
-          service: new maps.places.AutocompleteService(),
-          geocoder: new maps.Geocoder(),
-          token: new maps.places.AutocompleteSessionToken(),
-          maps,
-        };
-      })
-      .catch(() => {
-        placesReady = false; // Places API unavailable — stay on keyless geocode.
-        return false;
-      });
+      .then((maps) => buildPlacesAdapter(maps))
+      .catch(() => (placesReady = false));
     return placesReady;
   }
 
-  /** Wire one input to a suggestion list. Returns a per-field resolved-coord getter. */
+  /** Predict via the new Places API (places.googleapis.com). Throws if blocked. */
+  function newApiPredict(maps) {
+    const places = maps.places;
+    let token = new places.AutocompleteSessionToken();
+    return async (input) => {
+      const { suggestions } =
+        await places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+          input,
+          sessionToken: token,
+        });
+      return (suggestions || [])
+        .map((s) => s.placePrediction)
+        .filter(Boolean)
+        .slice(0, MAX_SUGGESTIONS)
+        .map((prediction) => ({
+          label: prediction.text?.toString?.() || '',
+          async resolve() {
+            const place = prediction.toPlace();
+            await place.fetchFields({
+              fields: ['location', 'formattedAddress'],
+            });
+            token = new places.AutocompleteSessionToken();
+            return {
+              lat: place.location.lat(),
+              lon: place.location.lng(),
+              label: place.formattedAddress || prediction.text?.toString(),
+            };
+          },
+        }));
+    };
+  }
+
+  /** Predict via the legacy Places API (places-backend). Resolves to [] if blocked. */
+  function legacyApiPredict(maps) {
+    const places = maps.places;
+    const service = new places.AutocompleteService();
+    const geocoder = new maps.Geocoder();
+    const token = new places.AutocompleteSessionToken();
+    return (input) =>
+      new Promise((resolve, reject) =>
+        service.getPlacePredictions(
+          { input, sessionToken: token },
+          (predictions, code) => {
+            if (code === places.PlacesServiceStatus.REQUEST_DENIED)
+              return reject(new Error('legacy places denied'));
+            if (code !== places.PlacesServiceStatus.OK) return resolve([]);
+            resolve(
+              (predictions || []).slice(0, MAX_SUGGESTIONS).map((p) => ({
+                label: p.description,
+                async resolve() {
+                  const { results } = await geocoder.geocode({
+                    placeId: p.place_id,
+                  });
+                  const loc = results?.[0]?.geometry?.location;
+                  return loc
+                    ? { lat: loc.lat(), lon: loc.lng(), label: p.description }
+                    : null;
+                },
+              })),
+            );
+          },
+        ),
+      );
+  }
+
+  // Try the new Places API first, fall back to legacy — whichever the key's
+  // project has enabled. Remembers the working one after the first success.
+  function buildPlacesAdapter(maps) {
+    const places = maps.places;
+    const runners = [];
+    if (places?.AutocompleteSuggestion) runners.push(newApiPredict(maps));
+    if (places?.AutocompleteService) runners.push(legacyApiPredict(maps));
+    if (!runners.length) return false;
+    let preferred = null;
+    return {
+      async predict(input) {
+        if (preferred) return preferred(input);
+        let lastError;
+        for (const run of runners) {
+          try {
+            const items = await run(input);
+            preferred = run;
+            return items;
+          } catch (error) {
+            lastError = error;
+          }
+        }
+        throw lastError || new Error('places unavailable');
+      },
+    };
+  }
+
+  /** Wire one input to a suggestion list. Returns a per-field chosen-coord getter. */
   function attachField(inputEl, listEl) {
-    let chosen = null; // { lat, lon, label } selected from a suggestion
+    let chosen = null; // { lat, lon, label } resolved from a picked suggestion
     let timer = null;
     let items = [];
     let active = -1;
@@ -99,63 +184,54 @@ export function createRouteBox({
       items = [];
       active = -1;
     };
-
-    const paint = () => {
+    const paint = () =>
       [...listEl.children].forEach((li, i) =>
         li.classList.toggle('active', i === active),
       );
-    };
 
-    async function choose(prediction) {
-      inputEl.value = prediction.description;
+    async function pick(item) {
+      inputEl.value = item.label;
       closeList();
-      const ctx = await placesReady;
+      chosen = null;
       try {
-        const { results } = await ctx.geocoder.geocode({
-          placeId: prediction.place_id,
-        });
-        const loc = results?.[0]?.geometry?.location;
-        if (loc)
-          chosen = {
-            lat: loc.lat(),
-            lon: loc.lng(),
-            label: prediction.description,
-          };
+        chosen = await item.resolve();
       } catch {
         chosen = null; // fall back to keyless geocode on route()
       }
     }
 
     async function query(text) {
-      const ctx = await ensurePlaces();
-      if (!ctx || inputEl.value.trim() !== text) return;
-      ctx.service.getPlacePredictions(
-        { input: text, sessionToken: ctx.token },
-        (predictions, statusCode) => {
-          if (inputEl.value.trim() !== text) return;
-          const ok = statusCode === ctx.maps.places.PlacesServiceStatus.OK;
-          items = ok ? predictions.slice(0, MAX_SUGGESTIONS) : [];
-          if (!items.length) return closeList();
-          listEl.replaceChildren(
-            ...items.map((p, i) => {
-              const li = doc.createElement('li');
-              li.textContent = p.description;
-              li.setAttribute('role', 'option');
-              li.addEventListener('mousedown', (event) => {
-                event.preventDefault();
-                void choose(p);
-              });
-              li.addEventListener('mouseenter', () => {
-                active = i;
-                paint();
-              });
-              return li;
-            }),
-          );
-          active = -1;
-          listEl.hidden = false;
-        },
+      const adapter = await ensurePlaces();
+      if (!adapter || inputEl.value.trim() !== text) return;
+      let predictions = [];
+      try {
+        predictions = await adapter.predict(text);
+      } catch {
+        placesReady = false; // no enabled Places API — stop trying this session
+        closeList();
+        return;
+      }
+      if (inputEl.value.trim() !== text) return;
+      items = predictions;
+      if (!items.length) return closeList();
+      listEl.replaceChildren(
+        ...items.map((item, i) => {
+          const li = doc.createElement('li');
+          li.textContent = item.label;
+          li.setAttribute('role', 'option');
+          li.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            void pick(item);
+          });
+          li.addEventListener('mouseenter', () => {
+            active = i;
+            paint();
+          });
+          return li;
+        }),
       );
+      active = -1;
+      listEl.hidden = false;
     }
 
     inputEl.addEventListener('input', () => {
@@ -178,17 +254,14 @@ export function createRouteBox({
       } else if (event.key === 'Enter' && active >= 0) {
         event.preventDefault();
         event.stopPropagation();
-        void choose(items[active]);
+        void pick(items[active]);
       } else if (event.key === 'Escape') {
         closeList();
       }
     });
     inputEl.addEventListener('blur', () => setTimeout(closeList, 120));
 
-    return {
-      getChosen: () => chosen,
-      close: closeList,
-    };
+    return { getChosen: () => chosen, close: closeList };
   }
 
   const startField = attachField(startEl, startEl.nextElementSibling);
@@ -255,6 +328,7 @@ export function createRouteBox({
     const shortB = b.label.split(',')[0];
     status(`Routing ${shortA} → ${shortB}…`);
     flyEl.disabled = false;
+    clearEl.disabled = false;
     setTimeout(() => {
       if (token === runToken) status(`${shortA} → ${shortB}`);
     }, 1200);
@@ -265,6 +339,21 @@ export function createRouteBox({
     if (module) module.setParams({ fly: true });
   }
 
+  /** Remove the drawn route and reset the box to an empty state. */
+  function clearRoute() {
+    runToken++;
+    directionsModule()?.setParams({ clear: true });
+    startEl.value = '';
+    destEl.value = '';
+    startEl.title = '';
+    destEl.title = '';
+    startField.close();
+    destField.close();
+    flyEl.disabled = true;
+    clearEl.disabled = true;
+    status('');
+  }
+
   function swap() {
     const s = startEl.value;
     startEl.value = destEl.value;
@@ -273,6 +362,7 @@ export function createRouteBox({
 
   const onGo = () => void route();
   const onFly = () => fly();
+  const onClear = () => clearRoute();
   const onSwap = () => swap();
   const onCollapse = () => root.classList.toggle('collapsed');
   const onEnter = (event) => {
@@ -280,6 +370,7 @@ export function createRouteBox({
   };
   goEl.addEventListener('click', onGo);
   flyEl.addEventListener('click', onFly);
+  clearEl.addEventListener('click', onClear);
   swapEl.addEventListener('click', onSwap);
   collapseEl.addEventListener('click', onCollapse);
   startEl.addEventListener('keydown', onEnter);
@@ -289,9 +380,11 @@ export function createRouteBox({
     root,
     route,
     fly,
+    clearRoute,
     destroy() {
       goEl.removeEventListener('click', onGo);
       flyEl.removeEventListener('click', onFly);
+      clearEl.removeEventListener('click', onClear);
       swapEl.removeEventListener('click', onSwap);
       collapseEl.removeEventListener('click', onCollapse);
       startEl.removeEventListener('keydown', onEnter);

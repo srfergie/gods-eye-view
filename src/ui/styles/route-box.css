@@ -108,18 +108,20 @@
 
 #gev-route-box .gev-route-controls {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   align-items: stretch;
 }
 
 #gev-route-box .gev-route-mode {
-  flex: 1 1 auto;
+  flex: 1 1 80px;
   width: auto;
 }
 
 #gev-route-box .gev-route-swap,
 #gev-route-box .gev-route-go,
-#gev-route-box .gev-route-fly {
+#gev-route-box .gev-route-fly,
+#gev-route-box .gev-route-clear {
   padding: 7px 9px;
   border-radius: 7px;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -138,11 +140,13 @@
 }
 
 #gev-route-box .gev-route-go:hover,
-#gev-route-box .gev-route-fly:hover:not(:disabled) {
+#gev-route-box .gev-route-fly:hover:not(:disabled),
+#gev-route-box .gev-route-clear:hover:not(:disabled) {
   border-color: rgba(120, 200, 255, 0.7);
 }
 
-#gev-route-box .gev-route-fly:disabled {
+#gev-route-box .gev-route-fly:disabled,
+#gev-route-box .gev-route-clear:disabled {
   opacity: 0.45;
   cursor: default;
 }
