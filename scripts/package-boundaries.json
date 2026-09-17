@@ -271,7 +271,8 @@
       "src/voice/voiceCost.js",
       "src/voice/actionSchemas.js",
       "server/providers/openai/toolDescriptions.js",
-      "src/sources/rateLimit.js"
+      "src/sources/rateLimit.js",
+      "server/providers/local-voice.js"
     ],
     "external": []
   },
@@ -1176,7 +1177,8 @@
       "src/voice/realtimeFacade.js",
       "src/voice/realtimeRadio.js",
       "src/voice/realtimeTurns.js",
-      "src/voice/realtimeConnection.js"
+      "src/voice/realtimeConnection.js",
+      "src/voice/localSession.js"
     ],
     "external": []
   },
@@ -1809,7 +1811,11 @@
       "src/director/sharing/lifetime.js",
       "src/director/authoring.js",
       "src/scenes/sharing.js",
-      "src/ui/sceneSharing.js"
+      "src/ui/sceneSharing.js",
+      "src/routeBox/routeBox.js",
+      "src/streetView/streetView.js",
+      "src/googleMaps/loader.js",
+      "src/voice/localSession.js"
     ],
     "external": [
       "@mapbox/vector-tile",

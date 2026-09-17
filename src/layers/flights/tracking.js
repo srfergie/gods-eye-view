@@ -8,7 +8,6 @@ import {
 import { trailHeadStart } from '../../data/modelVisualAnchor.js';
 import { aircraftIcon, TRACKED_ICON_PX } from '../../data/aircraftIcons.js';
 import { routePlausible } from '../../data/routePlausible.js';
-import { haversineKm } from '../../data/analystEngine.js';
 import { CLASS_SCALE_2D } from '../../data/aircraftClass.js';
 import {
   bindTrackingClickGesture,
@@ -783,6 +782,18 @@ export function createTracking({
    * know descent, holding or approach, so it is an estimate, not a schedule.
    * @returns {string|null} e.g. "ETA 34 min (14:20)" or null when not sensible.
    */
+  /** Great-circle distance in km (kept local so civil-flights gains no deps). */
+  function _haversineKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const rad = (d) => (d * Math.PI) / 180;
+    const dLat = rad(lat2 - lat1);
+    const dLon = rad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+
   function _estimateArrival(info) {
     const dest = info.route?.destination;
     if (
@@ -795,7 +806,7 @@ export function createTracking({
       !(info.velocity > 60) // ~120 kts: airborne and moving, avoids taxi noise
     )
       return null;
-    const distKm = haversineKm(
+    const distKm = _haversineKm(
       info.latitude,
       info.longitude,
       dest.lat,
