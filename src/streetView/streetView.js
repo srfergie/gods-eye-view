@@ -1,29 +1,5 @@
 import * as Cesium from 'cesium';
-
-const GMAPS_CALLBACK = '__gevGoogleMapsReady';
-let gmapsPromise = null;
-
-/** Load the Google Maps JS API once; resolves when `google.maps` is ready. */
-function loadGoogleMaps(apiKey) {
-  if (window.google?.maps) return Promise.resolve();
-  if (gmapsPromise) return gmapsPromise;
-  gmapsPromise = new Promise((resolve, reject) => {
-    window[GMAPS_CALLBACK] = () => resolve();
-    const script = document.createElement('script');
-    script.async = true;
-    script.src =
-      'https://maps.googleapis.com/maps/api/js' +
-      `?key=${encodeURIComponent(apiKey)}&v=weekly&loading=async&callback=${GMAPS_CALLBACK}`;
-    script.onerror = () => {
-      gmapsPromise = null;
-      reject(
-        new Error('Could not load Google Maps. Check the key and network.'),
-      );
-    };
-    document.head.appendChild(script);
-  });
-  return gmapsPromise;
-}
+import { loadGoogleMaps } from '../googleMaps/loader.js';
 
 /** Degrees at the camera's screen-centre ground point, or null if it misses the globe. */
 function cameraCenterLatLon(viewer) {

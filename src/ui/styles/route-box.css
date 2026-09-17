@@ -51,6 +51,42 @@
   gap: 7px;
 }
 
+#gev-route-box .gev-route-field {
+  position: relative;
+}
+
+#gev-route-box .gev-route-suggest {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 3px);
+  z-index: 5;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(12, 18, 24, 0.98);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+  max-height: 210px;
+  overflow-y: auto;
+}
+
+#gev-route-box .gev-route-suggest li {
+  padding: 7px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.82);
+  cursor: pointer;
+}
+
+#gev-route-box .gev-route-suggest li.active,
+#gev-route-box .gev-route-suggest li:hover {
+  background: rgba(57, 208, 255, 0.18);
+  color: #fff;
+}
+
 #gev-route-box input,
 #gev-route-box select {
   width: 100%;
