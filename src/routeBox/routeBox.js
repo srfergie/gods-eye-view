@@ -338,9 +338,24 @@ export function createRouteBox({
     status(`Routing ${shortA} → ${shortB}…`);
     flyEl.disabled = false;
     clearEl.disabled = false;
-    setTimeout(() => {
-      if (token === runToken) status(`${shortA} → ${shortB}`);
-    }, 1200);
+    void showRouteStats(token, `${shortA} → ${shortB}`, module);
+  }
+
+  /** Poll the layer for the finished route's distance/time and show it. */
+  async function showRouteStats(token, prefix, module) {
+    for (let i = 0; i < 16; i++) {
+      if (token !== runToken) return;
+      const stats = module.getStats?.();
+      if (stats?.error) return status(`${prefix} · route unavailable`);
+      const coverage = stats?.coverage || '';
+      // Completed routes report e.g. "23 km · 28 min · Drive"; ignore the
+      // pre-route prompts ("SET A…", "Click the globe…").
+      if (/\d/.test(coverage) && /(km|mi|\bmin\b|\bh\b|hr)/i.test(coverage)) {
+        return status(`${prefix} · ${coverage}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    }
+    if (token === runToken) status(prefix);
   }
 
   /** Fly the camera to frame both endpoints so the route is in view. */
