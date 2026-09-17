@@ -129,36 +129,43 @@ export function createStreetView({
       toast(error.message);
       return;
     }
-    const service = new window.google.maps.StreetViewService();
-    service.getPanorama(
-      {
-        location: { lat, lng: lon },
-        radius: 80,
-        source: window.google.maps.StreetViewSource.OUTDOOR,
-      },
-      (data, status) => {
-        if (status !== 'OK' || !data?.location) {
-          toast('No Street View imagery near that spot.');
-          return;
-        }
-        if (!panorama) {
-          panorama = new window.google.maps.StreetViewPanorama(panoEl, {
-            addressControl: true,
-            fullscreenControl: false,
-            motionTracking: false,
-            motionTrackingControl: false,
-          });
-        }
-        panorama.setPano(data.location.pano);
-        panorama.setPov({ heading: 0, pitch: 0 });
-        panorama.setVisible(true);
-        const desc =
-          data.location.description || `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-        coordsEl.textContent = desc;
-        toastEl.hidden = true;
-        show();
-      },
-    );
+    const maps = window.google.maps;
+    const service = new maps.StreetViewService();
+    // Prefer outdoor (car) coverage; fall back to user photo spheres so rural
+    // spots that only have those still open instead of failing.
+    const request = (source) =>
+      new Promise((resolve) =>
+        service.getPanorama(
+          { location: { lat, lng: lon }, radius: 120, source },
+          (data, status) =>
+            resolve(status === 'OK' && data?.location ? data : null),
+        ),
+      );
+    let data = await request(maps.StreetViewSource.OUTDOOR);
+    if (!data) data = await request(maps.StreetViewSource.DEFAULT);
+    if (!data) {
+      toast('No Street View imagery near that spot.');
+      return;
+    }
+    if (!panorama) {
+      panorama = new maps.StreetViewPanorama(panoEl, {
+        addressControl: true,
+        fullscreenControl: false,
+        motionTracking: false,
+        motionTrackingControl: false,
+      });
+    }
+    // Show the container BEFORE loading the pano: Street View renders black if
+    // its element has no size when set, and a resize nudge re-lays-out a reused
+    // panorama that was updated while hidden.
+    coordsEl.textContent =
+      data.location.description || `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+    toastEl.hidden = true;
+    show();
+    panorama.setPano(data.location.pano);
+    panorama.setPov({ heading: 0, pitch: 0 });
+    panorama.setVisible(true);
+    requestAnimationFrame(() => maps.event.trigger(panorama, 'resize'));
   }
 
   function openFromCamera() {
