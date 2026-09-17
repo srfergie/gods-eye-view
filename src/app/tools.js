@@ -2,6 +2,7 @@ import { SceneDirector } from '../scenes/director.js';
 import { initAnnotations } from '../annotations/index.js';
 import { initDrawTool } from '../annotations/drawTool.js';
 import { initGevVoiceCommands } from '../voice/gevRealtime.js';
+import { createStreetView } from '../streetView/streetView.js';
 import { installScopeMask, destroyScopeMask } from '../scopeMask.js';
 import {
   installRenderGovernor,
@@ -137,5 +138,8 @@ export function createApplicationTools({
       delete window.__gevVoiceCommands;
   });
   debug.voiceCommands = voiceCommands;
-  return { sceneDirector, annotations, voiceCommands };
+  const streetView = createStreetView({ viewer });
+  defer(() => streetView.destroy());
+  debug.streetView = streetView;
+  return { sceneDirector, annotations, voiceCommands, streetView };
 }
