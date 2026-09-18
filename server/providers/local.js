@@ -10,6 +10,7 @@ import { regionalBriefProxy } from './regional/briefing.js';
 import { geocodeProxy } from './regional/place.js';
 import { weatherEffectsProxy } from './regional/weather-effects.js';
 import { cctvProxy } from './cctv.js';
+import { trafficScotlandProxy } from './traffic-scotland.js';
 import { defaultSourceRoot } from './common/source-root.js';
 import { radioBrowserProxy } from './radio.js';
 import { gbfsProxy } from './gbfs.js';
@@ -38,6 +39,7 @@ function localProviderPlugins() {
     geocodeProxy(),
     weatherEffectsProxy(),
     cctvProxy({ sourceRoot: defaultSourceRoot }),
+    trafficScotlandProxy({ sourceRoot: defaultSourceRoot }),
     radioBrowserProxy(),
     gbfsProxy(),
     transitProxy(),

@@ -18,7 +18,29 @@ import {
 } from './cctv/constants.js';
 import { sanitizeCctvRangeHeader } from './cctv/range.js';
 import { googleServerApiKey } from './places/google-key.js';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import {
+  trafficScotlandCacheDir,
+  TS_ID_PREFIX,
+  TS_SOURCE_KIND,
+} from './traffic-scotland/config.js';
 export { CCTV_FRAME_FETCH_TIMEOUT_MS, fetchCctvImageFromUpstream };
+
+/** Read a cached Traffic Scotland frame; the id is `ts-<imageFile>`. Null if absent. */
+async function readTrafficScotlandFrame(sourceRoot, cameraId) {
+  if (!cameraId.startsWith(TS_ID_PREFIX)) return null;
+  const image = cameraId.slice(TS_ID_PREFIX.length);
+  // Basename only — never let an id escape the cache directory.
+  if (image !== path.basename(image)) return null;
+  try {
+    return await readFile(
+      path.join(trafficScotlandCacheDir(sourceRoot), 'current', image),
+    );
+  } catch {
+    return null;
+  }
+}
 /**
  * Vite plugin: CCTV camera proxy with source registry, frame/media serving,
  * fallback chain (upstream -> Street View -> synthetic SVG), and health tracking.
@@ -348,6 +370,27 @@ export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
         );
         const fov = Number(url.searchParams.get('fov') || source?.fovDeg);
         const pitch = Number(url.searchParams.get('pitch') || source?.pitchDeg);
+
+        // Traffic Scotland frames are served from the local FTP cache the
+        // poller fills, never fetched per-request (their rate rules forbid it).
+        if (source?.sourceKind === TS_SOURCE_KIND) {
+          const cached = await readTrafficScotlandFrame(sourceRoot, cameraId);
+          if (cached) {
+            setHealth(cameraId, {
+              status: 'ok',
+              sourceKind: 'snapshot',
+              label: 'Traffic Scotland',
+              message: 'Cached LEV frame',
+            });
+            res.writeHead(200, {
+              'Content-Type': 'image/jpeg',
+              'Cache-Control': 'no-store',
+              'X-CCTV-Source': 'traffic-scotland-cache',
+            });
+            res.end(cached);
+            return;
+          }
+        }
 
         // Only use server-registered upstream URLs — never accept client-supplied URLs
         // (prevents SSRF via ?upstream= query parameter)

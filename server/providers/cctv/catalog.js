@@ -4,6 +4,8 @@ import { DEFAULT_CCTV_SOURCE_FILE, CCTV_SOURCE_CACHE_MS } from './constants.js';
 import { allocateSourceCap, resolveCatalogCap } from './cap.js';
 import { loadGroundHeights, joinGroundHeights } from './groundHeights.js';
 import { normalizeSourceItem } from './normalize.js';
+import { loadTrafficScotlandSources } from '../traffic-scotland/sources.js';
+import { trafficScotlandConfig } from '../traffic-scotland/config.js';
 import {
   loadAustinSourcesFromOpenData,
   loadCaltransSourcesFromOpenData,
@@ -85,6 +87,11 @@ const LIVE_PACKS = [
     name: 'calgary',
     enabled: () => envEnabled('CCTV_CALGARY_ENABLED'),
     load: loadCalgarySourcesFromOpenData,
+  },
+  {
+    name: 'traffic-scotland',
+    enabled: () => trafficScotlandConfig().enabled,
+    load: loadTrafficScotlandSources,
   },
 ];
 /**

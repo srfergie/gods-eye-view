@@ -168,7 +168,9 @@
       "scripts/google-server-key.mjs",
       "src/data/cctvFootprint.js",
       "src/sources/cctvTypes.js",
-      "src/sources/httpBody.js"
+      "src/sources/httpBody.js",
+      "server/providers/traffic-scotland/config.js",
+      "server/providers/traffic-scotland/sources.js"
     ],
     "external": []
   },
