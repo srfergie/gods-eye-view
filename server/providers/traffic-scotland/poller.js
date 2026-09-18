@@ -1,5 +1,12 @@
 import { Client } from 'basic-ftp';
-import { mkdir, writeFile, readFile, rename } from 'node:fs/promises';
+import {
+  mkdir,
+  writeFile,
+  readFile,
+  rename,
+  readdir,
+  rm,
+} from 'node:fs/promises';
 import path from 'node:path';
 import { osgbToWgs84 } from './bng.js';
 
@@ -61,6 +68,21 @@ export function createTrafficScotlandPoller({
   let lastPullAt = 0;
   let cameras = [];
 
+  async function pruneCache(keepImages) {
+    try {
+      const entries = await readdir(currentDir);
+      await Promise.all(
+        entries
+          .filter((name) => name.endsWith('.part') || !keepImages.has(name))
+          .map((name) =>
+            rm(path.join(currentDir, name), { force: true }).catch(() => {}),
+          ),
+      );
+    } catch {
+      /* cache dir missing/unreadable — nothing to prune */
+    }
+  }
+
   async function loadCachedCameras() {
     try {
       cameras = JSON.parse(await readFile(camerasPath, 'utf8'));
@@ -97,6 +119,10 @@ export function createTrafficScotlandPoller({
       }
       cameras = parsed;
       await writeFile(camerasPath, JSON.stringify(parsed), 'utf8');
+      // Keep the cache bounded: same filenames are overwritten each cycle, so
+      // it never grows — but drop any image for a camera Traffic Scotland has
+      // since retired, plus any leftover .part from an interrupted download.
+      await pruneCache(new Set(parsed.map((cam) => cam.image)));
       lastPullAt = Date.now();
       log(`pulled ${ok}/${parsed.length} camera images`);
     } catch (error) {
